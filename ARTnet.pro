@@ -17,10 +17,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    net.cpp \
+    net_layer.cpp \
+    neuron.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    net.h \
+    net_layer.h \
+    neuron.h
 
 FORMS += \
     mainwindow.ui
