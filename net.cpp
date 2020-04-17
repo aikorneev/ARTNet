@@ -8,6 +8,25 @@ net::net(int input_size)
     recognition = new net_layer(1, input_size);
 }
 
+void net::get_info(QString* info)
+{
+    int i,j;
+    for (i=1; i < compare->neuron_count; i++)
+    {
+        *info += "For neuron " + QString::number(i) + "\nT ";
+        for(j=0;j<compare->neurons[i]->size;j++)
+        {
+            *info += QString::number(compare->neurons[i]->vector[j])+ "\t";
+        }
+        *info +="\nB ";
+        for(j=0;j<recognition->neurons[i]->size;j++)
+        {
+            *info += QString::number(recognition->neurons[i]->vector[j], 'f', 2)+ "\t";
+        }
+        *info +="\n";
+    }
+}
+
 void net::show_net()
 {
     qDebug() << "Compare layer:";
@@ -16,16 +35,16 @@ void net::show_net()
     recognition->show_layer();
 }
 
-void net::new_input(double *input, int size)
+void net::new_input(double *input, int size, QString* logs)
 {
-    qDebug() << "NEW_INPUT";
+    *logs += "NEW_INPUT\n";
     if (size != input_count)
     {
         qDebug() << "input > net input";
     }
     if (compare->neuron_count == 1)
     {
-        qDebug() << "first input, no changes";
+        *logs  += "First input, remember without any changes\n";
 
         remember_input(input, size);
         return;
@@ -34,20 +53,23 @@ void net::new_input(double *input, int size)
     int i, index=0;
     double max, temp;
     max = recognition->neurons[0]->output(input, size);
+    *logs += "Sn = " + QString::number(max) + "\n";
     for(i=1; i < recognition->neuron_count; i++)
     {
         temp = recognition->neurons[i]->output(input, size);
-        qDebug() << "ch " << temp;
+         *logs += "S" + QString::number(i) + " = " + QString::number(temp) + "\n";
         if (max < temp)
         {
             max = temp;
             index = i;
         }
     }
-    qDebug() << "winner is " << index << max;
+    QString S = index?QString::number(index):"n";
+    *logs += "Winner is S" + S + + " = " + QString::number(max)+ "\n";
 
     if (index == 0) // winner is 0 neuron
     {
+       *logs += "Remember as a new neuron\n";
        remember_input(input, size);
        return;
     }
@@ -55,6 +77,7 @@ void net::new_input(double *input, int size)
     double result;
     double C[size];
     int diff = 0;
+     *logs += "C ";
     for(i=0; i < size; i++)
     {
         if (input[i] > compare->neurons[index]->vector[i])
@@ -63,15 +86,14 @@ void net::new_input(double *input, int size)
             C[i] = 0;
         }
         else C[i] = input[i];
-
+         *logs += QString::number(C[i]) + " ";
     }
     result = (double) (size-diff)/ size;
 
-    qDebug() << "result" << result << C;
-
     if (result > border_value)
     {
-        qDebug() << "update neuron";
+        *logs += "\n result = " + QString::number(result) + " > " + QString::number(border_value,'f',2) + "\n";
+        *logs += "Update neuron #" + QString::number(index) + "\n";
         compare->update_neuron(index, C, size);
         double sum = 0;
         for(i=0; i < size; i++)
@@ -84,8 +106,8 @@ void net::new_input(double *input, int size)
         recognition->update_neuron(index, C, size);
     } else
     {
-
-        qDebug() << "new neuron";
+        *logs += "\nresult = " + QString::number(result) + " < " + QString::number(border_value,'f',2) + "\n";
+        *logs += "Remember as a new neuron\n";
         remember_input(input, size);
     }
     return;
@@ -103,6 +125,7 @@ void net::remember_input(double *input, int size)
 
     for(i=0; i < size; i++)
     {
+        qDebug() << i << L << input[i] << sum << L*input[i]/(L-1+sum);
         input[i] = L*input[i]/(L-1+sum);
     }
     recognition->new_neuron(input, size);

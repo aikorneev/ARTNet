@@ -9,7 +9,8 @@ class net
 public:
     net(int input_size);
     void show_net();
-    void new_input(double *, int);
+    void get_info(QString*);
+    void new_input(double *, int, QString*);
 
     int input_count;
     double border_value;
